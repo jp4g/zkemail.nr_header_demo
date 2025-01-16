@@ -56,7 +56,13 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
   });
 
   describe("Simulated", () => {
-    
+    beforeAll(() => {
+      //@ts-ignore
+      prover = new ZKEmailProver(circuit, 'honk');
+    });
+    afterAll(async () => {
+      await prover.destroy();
+    });
     it("Simulate Witness/ Check Outputs", async () => {
       // simulate witness
       const result = await prover.simulateWitness(inputs);
