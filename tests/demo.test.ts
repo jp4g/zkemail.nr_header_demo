@@ -32,9 +32,6 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
   let inputs: CustomCircuitInputs;
 
   beforeAll(async () => {
-    //@ts-ignore
-    prover = new ZKEmailProver(circuit);
-
     // set up base inputs
     // base zkemail input gen
     const dkimResult = await verifyDKIMSignature(email);
@@ -58,10 +55,8 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
     };
   });
 
-  afterAll(async () => {
-    await prover.destroy();
-  });
-  describe("Tests", () => {
+  describe("Simulated", () => {
+    
     it("Simulate Witness/ Check Outputs", async () => {
       // simulate witness
       const result = await prover.simulateWitness(inputs);
@@ -111,63 +106,77 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
         `\nSubject: "${empiricalSubject}"`;
       console.log(output);
     });
+  });
 
-    describe("Plonk Proving", () => {
-      it("Iteration 1", async () => {
-        const start = Date.now();
-        const proof = await prover.fullProve(inputs, "plonk");
-        const proofGenTime = Date.now() - start;
-        const result = await prover.verify(proof, "plonk");
-        const verifyTime = Date.now() - start - proofGenTime;
-        expect(result).toBeTruthy();
-        const output =
-          "===============[Plonk Cold Proof Stats]================" +
-          `\nProof Generation Time: ${proofGenTime}ms` +
-          `\nVerify Time: ${verifyTime}ms`;
-        console.log(output);
-      });
-      it("Iteration 2", async () => {
-        const start = Date.now();
-        const proof = await prover.fullProve(inputs, "plonk");
-        const proofGenTime = Date.now() - start;
-        const result = await prover.verify(proof, "plonk");
-        const verifyTime = Date.now() - start - proofGenTime;
-        expect(result).toBeTruthy();
-        const output =
-          "===============[Plonk Warm Proof Stats]================" +
-          `\nProof Generation Time: ${proofGenTime}ms` +
-          `\nVerify Time: ${verifyTime}ms`;
-        console.log(output);
-      });
+  describe("Plonk Proving", () => {
+    beforeAll(() => {
+      //@ts-ignore
+      prover = new ZKEmailProver(circuit, 'plonk');
     });
+    afterAll(async () => {
+      await prover.destroy();
+    });
+    it("Iteration 1", async () => {
+      const start = Date.now();
+      const proof = await prover.fullProve(inputs, "plonk");
+      const proofGenTime = Date.now() - start;
+      const result = await prover.verify(proof, "plonk");
+      const verifyTime = Date.now() - start - proofGenTime;
+      expect(result).toBeTruthy();
+      const output =
+        "===============[Plonk Cold Proof Stats]================" +
+        `\nProof Generation Time: ${proofGenTime}ms` +
+        `\nVerify Time: ${verifyTime}ms`;
+      console.log(output);
+    });
+    it("Iteration 2", async () => {
+      const start = Date.now();
+      const proof = await prover.fullProve(inputs, "plonk");
+      const proofGenTime = Date.now() - start;
+      const result = await prover.verify(proof, "plonk");
+      const verifyTime = Date.now() - start - proofGenTime;
+      expect(result).toBeTruthy();
+      const output =
+        "===============[Plonk Warm Proof Stats]================" +
+        `\nProof Generation Time: ${proofGenTime}ms` +
+        `\nVerify Time: ${verifyTime}ms`;
+      console.log(output);
+    });
+  });
 
-    describe("Honk Proving", () => {
-      it("Iteration 1", async () => {
-        const start = Date.now();
-        const proof = await prover.fullProve(inputs, "honk");
-        const proofGenTime = Date.now() - start;
-        const result = await prover.verify(proof, "honk");
-        const verifyTime = Date.now() - start - proofGenTime;
-        expect(result).toBeTruthy();
-        const output =
-          "===============[Honk Cold Proof Stats]================" +
-          `\nProof Generation Time: ${proofGenTime}ms` +
-          `\nVerify Time: ${verifyTime}ms`;
-        console.log(output);
-      });
-      it("Iteration 2", async () => {
-        const start = Date.now();
-        const proof = await prover.fullProve(inputs, "honk");
-        const proofGenTime = Date.now() - start;
-        const result = await prover.verify(proof, "honk");
-        const verifyTime = Date.now() - start - proofGenTime;
-        expect(result).toBeTruthy();
-        const output =
-          "===============[Honk Warm Proof Stats]================" +
-          `\nProof Generation Time: ${proofGenTime}ms` +
-          `\nVerify Time: ${verifyTime}ms`;
-        console.log(output);
-      });
+  describe("Honk Proving", () => {
+    beforeAll(() => {
+      //@ts-ignore
+      prover = new ZKEmailProver(circuit, 'honk');
+    });
+    afterAll(async () => {
+      await prover.destroy();
+    });
+    it("Iteration 1", async () => {
+      const start = Date.now();
+      const proof = await prover.fullProve(inputs, "honk");
+      const proofGenTime = Date.now() - start;
+      const result = await prover.verify(proof, "honk");
+      const verifyTime = Date.now() - start - proofGenTime;
+      expect(result).toBeTruthy();
+      const output =
+        "===============[Honk Cold Proof Stats]================" +
+        `\nProof Generation Time: ${proofGenTime}ms` +
+        `\nVerify Time: ${verifyTime}ms`;
+      console.log(output);
+    });
+    it("Iteration 2", async () => {
+      const start = Date.now();
+      const proof = await prover.fullProve(inputs, "honk");
+      const proofGenTime = Date.now() - start;
+      const result = await prover.verify(proof, "honk");
+      const verifyTime = Date.now() - start - proofGenTime;
+      expect(result).toBeTruthy();
+      const output =
+        "===============[Honk Warm Proof Stats]================" +
+        `\nProof Generation Time: ${proofGenTime}ms` +
+        `\nVerify Time: ${verifyTime}ms`;
+      console.log(output);
     });
   });
 });
