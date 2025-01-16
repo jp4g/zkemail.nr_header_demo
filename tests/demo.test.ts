@@ -112,7 +112,7 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
       console.log(output);
     });
 
-    xdescribe("Plonk Proving", () => {
+    describe("Plonk Proving", () => {
       it("Iteration 1", async () => {
         const start = Date.now();
         const proof = await prover.fullProve(inputs, "plonk");
