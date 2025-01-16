@@ -1,0 +1,7 @@
+[package]
+name = "zkemail_test"
+type = "bin"
+authors = [""]
+
+[dependencies]
+zkemail = { tag = "v0.4.0", git = "https://github.com/zkemail/zkemail.nr", directory = "lib" }
