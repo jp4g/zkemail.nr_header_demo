@@ -48,7 +48,7 @@ describe("ZKEmail.nr Circuit Unit Tests", () => {
     inputs = {
       subject_sequence: {
         index: String(subjectField!.index),
-        length: String(subjectField![0].length),
+        length: String(subjectField![0].length - 2), // remove 2 for crlf
       },
       date_index: String(dateField!.index),
       ...baseInputs,

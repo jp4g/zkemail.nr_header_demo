@@ -12,27 +12,41 @@ global MAX_EMAIL_HEADER_LENGTH: u32 = 576;
 // if index 11 = " " then length is 41, else 42
 global DATE_LENGTH_DETERMINATION_INDEX: u32 = 11;
 // max length of a "Date" field in an email header
-global MAX_DATE_LENGTH: u32 = 38;
+global MAX_DATE_LENGTH: u32 = 36;
 // max length of Subject we will allow
 global MAX_SUBJECT_LENGTH: u32 = 100;
 
+/**
+ * Extract the text from a header field
+ * @dev constrained to be one uninterrupted and complete header field
+ *      will fail if max size too small or contains multiple header fields (i.e. crlf found)
+ * @dev one extra empty byte is added to the return - this could be removed by copying to smaller
+ *      array but not really worth it. trick needed for unconditional (efficient) RAM assignment
+ *
+ * @param MAX_HEADER_FIELD_LENGTH - The maximum length of the header field
+ * @param HEADER_FIELD_NAME_LENGTH - the length of the header field name (i.e. "from" -> 4)
+ * @param header - the email header bytes as validated by the DKIM signature
+ * @param header_field_sequence - the start index and actual length of the header field
+ * @param header_naame - the name of the header field (i.e. "from")
+ * @return - the extracted header field as a BoundedVec showing the exact size of the field
+ */
 pub fn extract_header_field<let MAX_HEADER_FIELD_LENGTH: u32, let HEADER_FIELD_NAME_LENGTH: u32>(
     header: BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH>,
     header_field_sequence: Sequence,
     header_name: [u8; HEADER_FIELD_NAME_LENGTH],
 ) -> BoundedVec<u8, MAX_HEADER_FIELD_LENGTH + 1> {
     // constrain the header field to be complete
-    // constrain_header_field::<MAX_EMAIL_HEADER_LENGTH, MAX_HEADER_FIELD_LENGTH, HEADER_FIELD_NAME_LENGTH>(
-    //     header,
-    //     header_field_sequence,
-    //     header_name,
-    // );
+    constrain_header_field::<MAX_EMAIL_HEADER_LENGTH, MAX_HEADER_FIELD_LENGTH, HEADER_FIELD_NAME_LENGTH>(
+        header,
+        header_field_sequence,
+        header_name,
+    );
 
     // copy the header field
     // use annoying trick to prevent conditional array assignment gate blowup
-    // dont include (for example) "subject:" ... and "/r/n"
+    // dont include (for example) "subject:" ...
     let start_index = header_field_sequence.index + HEADER_FIELD_NAME_LENGTH + 1;
-    let end_index = header_field_sequence.length - HEADER_FIELD_NAME_LENGTH - 3;
+    let end_index = header_field_sequence.length - HEADER_FIELD_NAME_LENGTH - 1;
     let mut storage: [u8; MAX_HEADER_FIELD_LENGTH + 1] = [0; MAX_HEADER_FIELD_LENGTH + 1];
     for i in 0..MAX_HEADER_FIELD_LENGTH - HEADER_FIELD_NAME_LENGTH - 1 {
         let mut index = i;
@@ -46,7 +60,7 @@ pub fn extract_header_field<let MAX_HEADER_FIELD_LENGTH: u32, let HEADER_FIELD_N
     storage[MAX_HEADER_FIELD_LENGTH] = 0;
 
     // determine length of the extracted field (- field name len - ":" - "\r\n")
-    let len = header_field_sequence.length - HEADER_FIELD_NAME_LENGTH - 1 - 2;
+    let len = header_field_sequence.length - HEADER_FIELD_NAME_LENGTH - 1;
 
     // copy into a bounded vec with length set
     let extracted: BoundedVec<u8, MAX_HEADER_FIELD_LENGTH + 1> = BoundedVec { storage, len };
@@ -65,6 +79,7 @@ pub fn extract_header_field<let MAX_HEADER_FIELD_LENGTH: u32, let HEADER_FIELD_N
  *         0: Pedersen hash of DKIM public key (root of trust)
  *         1: Pedersen hash of DKIM signature (email nullifier)
  */
+
 fn main(
     header: BoundedVec<u8, MAX_EMAIL_HEADER_LENGTH>,
     pubkey: RSAPubkey<KEY_LIMBS_2048>,
@@ -77,14 +92,16 @@ fn main(
     // check the body and header lengths are within bounds
     assert(header.len() <= MAX_EMAIL_HEADER_LENGTH);
 
+    // ~94416 gates
     // verify the dkim signature over the header
     pubkey.verify_dkim_signature(header, signature);
 
-    // extract to and from email addresses
+    // // extract to and from email addresses
     let from: [u8; 4] = comptime { "from".as_bytes() };
     let date: [u8; 4] = comptime { "date".as_bytes() };
     let subject: [u8; 7] = comptime { "subject".as_bytes() };
 
+    // ~21888 gates
     // 16k gate cost? has to be able to be brought down
     let from_address = get_email_address(header, from_header_sequence, from_address_sequence, from);
 
@@ -96,18 +113,18 @@ fn main(
     } else {
         MAX_DATE_LENGTH
     };
+
     // get datetime
-    // let datetime = extract_datetime(header, date_index);
-    let date_sequence = Sequence{
-        index: date_index,
-        length: date_length
-    };
+    // ~6700 gates
+    let date_sequence = Sequence { index: date_index, length: date_length };
     let datetime = extract_header_field::<MAX_DATE_LENGTH, 4>(header, date_sequence, date);
 
     // get the subject
+    // ~9148 gates
     let subject = extract_header_field::<MAX_SUBJECT_LENGTH, 7>(header, subject_sequence, subject);
 
     // hash the pubkey and signature for the standard outputs
+    // ~13813 gates
     let email_nullifier = pedersen_hash(signature);
     let standard_out = [pubkey.hash(), email_nullifier];
     (standard_out, from_address, datetime, subject)
@@ -212,7 +229,7 @@ fn test_email_circuit() {
         0x6d,
     ];
     let date_index: u32 = 133;
-    let subject_sequence = Sequence { index: 22, length: 30 };
+    let subject_sequence = Sequence { index: 22, length: 28 };
     let from_header_sequence = Sequence { index: 171, length: 44 };
     let from_address_sequence = Sequence { index: 191, length: 23 };
 
@@ -233,21 +250,22 @@ fn test_email_circuit() {
     assert(from_address.len() == expected_from_length);
     for i in 0..expected_from_length {
         assert(from_address.get(i) == expected_from[i]);
-    };
-    
+    }
+
     // check the expected datetime
     let expected_datetime_length: u32 = 31;
     let expected_datetime: [u8; 31] = comptime { "Tue, 14 Jan 2025 23:00:42 -0700".as_bytes() };
     assert(datetime.len() == expected_datetime_length);
     for i in 0..expected_datetime_length {
         assert(datetime.get(i) == expected_datetime[i]);
-    };
-    
+    }
+
     // check the expected subject
     let expected_subject_length: u32 = 20;
     let expected_subject: [u8; 20] = comptime { "This is a test email".as_bytes() };
+
     assert(subject.len() == expected_subject_length);
     for i in 0..expected_subject_length {
         assert(subject.get(i) == expected_subject[i]);
-    };
+    }
 }
