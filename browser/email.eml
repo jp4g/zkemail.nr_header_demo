@@ -1,0 +1,92 @@
+Delivered-To: jp4g@mach34.space
+Received: by 2002:a2e:9acf:0:b0:302:1b33:8eda with SMTP id p15csp2115234ljj;
+        Tue, 14 Jan 2025 22:00:53 -0800 (PST)
+X-Received: by 2002:a05:690c:31a:b0:6b3:a6ff:7676 with SMTP id 00721157ae682-6f5312208b9mr224794637b3.3.1736920853547;
+        Tue, 14 Jan 2025 22:00:53 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1736920853; cv=none;
+        d=google.com; s=arc-20240605;
+        b=igE7f7ecdQmcBXaz0rgv9/cMnkGY3sUXNzZngDAsNTVPmOn3f5lc64RAp83qW+L0cD
+         ntRFmbBTlDkWNbXTA9Q3i1qj9b6QkcWWO9gUrCf7jNA4tjDUABZn6fFOFg4BbxE8H9Er
+         CuYQt2bLClIra1p3GqTlP4L9668Ik7wiHwZfxdhgKsOljDcxImi/jNwsM2hNu5CBN80D
+         ztzOkwJh7TmwrFwTSmokFB0SKAEZr+b5goINEOMKQPow+VqxCPgTRdp8S6SajSUlb2oY
+         TSILVcj5b9fRjte/iRpS7fuRPEtYmv4vGxIVYo/KawViCud7vy91LaDz7AI4Up/ZrBKK
+         S6hQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=AaZOe0i43ZulDZ6S07TlXU33lyTCzcv6t1XPY+4YMqQ=;
+        fh=/UiB2TKkNsVh8Akg/aVj9qh9F8S0nHZysRDTIrEXKZE=;
+        b=Af4cj/Pp29rA7wVAI5mgMrZtc+aLVqrVTzec8dqH/k8n+ff5MFdITlNOwCp5dvASox
+         /Xt5Tc8lfaWnAwLYimCMCLklQz+hxWw5TGFE06pmH5wmGnRoPRL9DuO4CTn4cOKuqYwn
+         cOI2VYaE1yxPQKjkDXIC37Byt9g0tcxD2en21Cl+pmCOK2MdYg1EhF+GSoKBdwdXeULj
+         caIwzbAQ+MFxW8ieEvfbBENUmNe65fBDHpS20qhXF013OWl3ydKtReowQ20+SkzbcMif
+         F0ECi9YhTwdvhzzlFheB6pQa8xSUtK0o96hfrTRvhnETanpYYzMP6gQMkuT95V57rXv1
+         ShjQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b="bYFHP/sA";
+       spf=pass (google.com: domain of gilcrest.jack@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=gilcrest.jack@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@mach34.space
+Return-Path: <gilcrest.jack@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id 00721157ae682-6f546c3e1e7sor73344187b3.10.2025.01.14.22.00.53
+        for <jp4g@mach34.space>
+        (Google Transport Security);
+        Tue, 14 Jan 2025 22:00:53 -0800 (PST)
+Received-SPF: pass (google.com: domain of gilcrest.jack@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b="bYFHP/sA";
+       spf=pass (google.com: domain of gilcrest.jack@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=gilcrest.jack@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@mach34.space
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1736920853; x=1737525653; darn=mach34.space;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=AaZOe0i43ZulDZ6S07TlXU33lyTCzcv6t1XPY+4YMqQ=;
+        b=bYFHP/sA+/WavXsdjV6S7Uoh93LftjHzgD1sEVc5pWJR7GRDQcbOMFuxpRyqyBDzo2
+         DefVj32Vr4L4xW06Mr8hVVGO1wQlp0yYHxfOq/SWrWjzGnzDWISgrUpPP9/a2sFZybd8
+         7/YaY3/AGtmXt5dS5LgPiBEPY5/bRGZjYoDHm53784S33Ail61Ot1yKBf4/1dC+mF4lM
+         ITmYyp4me5AZk/UT+7uKS2AkxHznFBY1nHnLEIxAz+mjG4BIyaQggjGDfHG5kFVP64AA
+         ymr2yfG+TmaQNzieQu4PPznxWdLst8FPkMo8ss7hAiIaRE7/mrYlVdWve/F19ENCldsH
+         us7Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736920853; x=1737525653;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=AaZOe0i43ZulDZ6S07TlXU33lyTCzcv6t1XPY+4YMqQ=;
+        b=E6AhrqHm8ktTfndEjzmjgZTK1Z0UZlTuSt7pw+sOBQ0ez7OP0QYT7NBE0fnixd/uoc
+         cb8aS7ZQYrEub/iXDkr+Q27GIa0ZsNVAFLsHH2I5VPGUh9/58eup+r3u5QorFBZ5YqJe
+         YIHVY868moQh3m9YhW16c5GWB0PGDSTK+KYY5FTJi4xkGGGlIoRuJn15o+jj5AiN/tpz
+         abmhTUNn5Hy9ui0WXByTeMsJA05f9ZJ7WZWbOxTnTrt5GhnnA38L/63L656mETcw4SsB
+         v8fOv9l25COhXIACiTYsctl6URsREaOWeIQnGKyEDVwWEjMsaI/9/8455x90vCec0Vxf
+         Snqw==
+X-Gm-Message-State: AOJu0YwHD5sRA9AkVSiRnubJyyG6PTXal8096ZNxVDyBKs1vwKPoi0sN
+	glczYTFDuUz46mkkLVQjUak99MnG3QpVFVTjVUrZt6d30Nhv6gLV+G/gF3FNvuGT2fKpNMt4jRf
+	T0v4/2Ep02lDj4fwTnXDhnWjYmiNMObMP
+X-Gm-Gg: ASbGncsnzQ8bb2Du3NfA2wCgPR8sFSWRavcOJUEoRuWhw3RBAGvRIkBdbqSReyZ925v
+	3z1djXELwNGyit5A3ZC8pJHk8SQM312vkbp7OMZ8=
+X-Google-Smtp-Source: AGHT+IGlItCSfH52i6ghbJjokgtVlRyOvAG2M+3Y2vzht5sKw9Dj/CCbrIv9aXmliM3W/Z8dNX8XF/5gO7fwCRRoY7k=
+X-Received: by 2002:a05:690c:7009:b0:6ee:ad00:f157 with SMTP id
+ 00721157ae682-6f5312d3c04mr231020577b3.32.1736920852878; Tue, 14 Jan 2025
+ 22:00:52 -0800 (PST)
+MIME-Version: 1.0
+From: Jack Gilcrest <gilcrest.jack@gmail.com>
+Date: Tue, 14 Jan 2025 23:00:42 -0700
+X-Gm-Features: AbW1kvY9un12oxl-fiYWLUc_AfUd3DQlnwW6jHni0Xk3TTAUqZ_dQceD93p3RAg
+Message-ID: <CA+rJj=zTWd8s_4FxjOEKujc0oLfU5Ln0=K=+iaTPg1GUqO0x2g@mail.gmail.com>
+Subject: This is a test email
+To: jp4g@mach34.space
+Content-Type: multipart/alternative; boundary="000000000000705abc062bb866d2"
+
+--000000000000705abc062bb866d2
+Content-Type: text/plain; charset="UTF-8"
+
+
+
+--000000000000705abc062bb866d2
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="auto"></div>
+
+--000000000000705abc062bb866d2--
