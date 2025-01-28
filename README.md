@@ -33,7 +33,7 @@ yarn dev
 4. Adjust # of iterations and toggle concurrency on/off
 
 ## Instructions for running mobile benchmarks (Android)
-### !!!Note we have only done this on android as neither of us owns an Iphone!!!
+### !!! Note we have only done this on android as neither of us owns an Iphone !!!
 
 1. Navigate to "mobile" directory
 ```
