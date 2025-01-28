@@ -36,6 +36,29 @@ const calcAvg = (aggTime, iterations) => {
   };
 };
 
+const handleInput = (event) => {
+  const inputElement = event.target;
+  const value = inputElement.value;
+  const numericValue = value.replace(/[^0-9]/g, '');
+
+  if (numericValue === '0') {
+    inputElement.value = 1;
+  } else {
+    inputElement.value = numericValue;
+  }
+
+  const ultraHonkBtn = document.getElementById('proveUltraHonk');
+  const ultraPlonkBtn = document.getElementById('proveUltraPlonk');
+  // if input is empty then disable buttons
+  if (numericValue.trim() === '') {
+    ultraHonkBtn.disabled = true;
+    ultraPlonkBtn.disabled = true;
+  } else {
+    ultraHonkBtn.disabled = false;
+    ultraPlonkBtn.disabled = false;
+  }
+};
+
 const generateInputs = async () => {
   const email = await fetch('./email.eml');
   const emailBuffer = await email.arrayBuffer();
@@ -79,14 +102,22 @@ const prove = async (backend, inputs) => {
 };
 
 const proveBackend = async (proveWith) => {
-  const iterations = 5;
+  const concurrencyToggle = document.getElementById('concurrencyToggle');
+  const isConcurrencyEnabled = concurrencyToggle.checked;
+  const iterations = Number(document.getElementById('iterations').value);
 
-  const { UltraHonkBackend, Barretenberg } = await import('@aztec/bb.js');
+  // disable buttons while running
+  const proveHonkBtn = document.getElementById('proveUltraHonk');
+  const provePlonkBtn = document.getElementById('proveUltraPlonk');
+  proveHonkBtn.disabled = true;
+  provePlonkBtn.disabled = true;
 
-  const api = await Barretenberg.new();
+  const backendOptions = { threads: 0 };
+  if (isConcurrencyEnabled) {
+    const threads = window.navigator.hardwareConcurrency;
+    backendOptions.threads = threads;
+  }
 
-  const threads = window.navigator.hardwareConcurrency;
-  console.log(`Using ${threads} threads`);
   await Promise.all([
     initACVM(
       new URL(
@@ -101,25 +132,28 @@ const proveBackend = async (proveWith) => {
       ).toString()
     ),
   ]);
-
   const backend =
     proveWith === 'honk'
-      ? new UltraHonkBackend(circuit.bytecode)
-      : new UltraPlonkBackend(circuit.bytecode, { threads });
-
+      ? new UltraHonkBackend(circuit.bytecode, backendOptions)
+      : new UltraPlonkBackend(circuit.bytecode, backendOptions);
   const totalTimeAgg = {
     proofGenerationTime: 0,
     proofVerificationTime: 0,
     totalTime: 0,
     witnessGenerationTime: 0,
   };
-
   const inputs = await generateInputs();
-
   // clear logs
   const logs = document.getElementById('logs');
   logs.innerHTML = '';
-
+  if (isConcurrencyEnabled) {
+    display(
+      'logs',
+      `Using ${backendOptions.threads} thread${
+        backendOptions.threads > 1 ? 's' : ''
+      } 🧵`
+    );
+  }
   let prevDisplay = display(
     'logs',
     `Benching ${proveWith} for ${iterations} iteration${
@@ -137,13 +171,11 @@ const proveBackend = async (proveWith) => {
     `Cold start proof generation time: ${coldRes.proofGenerationTime}s ✅`
   );
   display('logs', `Cold start total time: ${coldRes.totalTime}s ✅`);
-
   prevDisplay = display(
     'logs',
     `Benched 1 iteration of ${iterations} for ${proveWith}... ⏳`,
     prevDisplay
   );
-
   for (let i = 1; i < iterations; i++) {
     console.log('iteration: ', i);
     updateTotalTime(totalTimeAgg, await prove(backend, inputs));
@@ -155,14 +187,16 @@ const proveBackend = async (proveWith) => {
       prevDisplay
     );
   }
-
   backend.destroy();
-
   const avg = calcAvg(totalTimeAgg, iterations);
   display('logs', `Witness generation time: ${avg.witnessGenerationTime}s ✅`);
   display('logs', `Proof generation time: ${avg.proofGenerationTime}s ✅`);
   // display('logs', `Proof verification time: ${avg.proofVerificationTime}s ✅`);
   display('logs', `Total time: ${avg.totalTime}s ✅`);
+
+  // re-enable buttons
+  proveHonkBtn.disabled = false;
+  provePlonkBtn.disabled = false;
 };
 
 const updateTotalTime = (total, iteration) => {
@@ -178,3 +212,4 @@ document
 document
   .getElementById('proveUltraPlonk')
   .addEventListener('click', async () => await proveBackend('plonk'));
+document.getElementById('iterations').addEventListener('input', handleInput);
